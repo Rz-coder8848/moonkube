@@ -65,3 +65,18 @@ test "binary step table is exact powers of two" {
     k = k + 1
   }
 }
+
+///|
+/// Comparison results must be normalized before they leave the package.
+///
+/// core's `BigInt::compare` returns a magnitude gap rather than `1` on the
+/// wasm-gc target (`10^100` vs `1` yields `10`), so a caller that passes it
+/// straight through breaks the documented `-1`/`0`/`1` contract. This is the
+/// regression guard for that platform difference.
+test "sign_of normalizes comparison results" {
+  assert_eq(sign_of(0), 0)
+  assert_eq(sign_of(1), 1)
+  assert_eq(sign_of(10), 1)
+  assert_eq(sign_of(-1), -1)
+  assert_eq(sign_of(-10), -1)
+}

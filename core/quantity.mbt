@@ -146,10 +146,10 @@ pub fn Quantity::is_zero(self : Quantity) -> Bool {
 pub fn Quantity::compare(self : Quantity, other : Quantity) -> Int {
   let (c1, e1) = normalize(self.coefficient, self.exponent)
   let (c2, e2) = normalize(other.coefficient, other.exponent)
-  let s1 = c1.compare_int(0)
-  let s2 = c2.compare_int(0)
+  let s1 = sign_of(c1.compare_int(0))
+  let s2 = sign_of(c2.compare_int(0))
   if s1 != s2 {
-    return s1.compare(s2)
+    return sign_of(s1.compare(s2))
   }
   if s1 == 0 {
     return 0
@@ -315,9 +315,9 @@ fn compare_magnitude(hi : BigInt, he : Int, lo : BigInt, le : Int) -> Int {
   if diff > 512 {
     let hi_order = hi.to_string().length() + he
     let lo_order = lo.to_string().length() + le
-    hi_order.compare(lo_order)
+    sign_of(hi_order.compare(lo_order))
   } else {
-    (hi * ten_pow(diff)).compare(lo)
+    sign_of((hi * ten_pow(diff)).compare(lo))
   }
 }
 
@@ -435,5 +435,25 @@ fn exponent_suffix(suffix : String) -> Int? {
   let body = sb.to_string()
   Some(@string.parse_int(body)) catch {
     _ => None
+  }
+}
+
+///|
+/// Collapse any comparison result into the conventional `-1` / `0` / `1`.
+///
+/// `moonbitlang/core`'s `BigInt::compare` is not specified to return a
+/// normalized tri-state, and in practice it does not: on the wasm-gc target
+/// comparing `10^100` against `1` yields `10` (the magnitude gap) while on
+/// native it yields `1`. Only the sign is reliable across targets, so every
+/// comparison in this package is pushed through this helper before it reaches a
+/// caller - otherwise `Quantity::compare` would hand back `10` on wasm-gc and
+/// break its documented `-1`/`0`/`1` contract.
+fn sign_of(value : Int) -> Int {
+  if value < 0 {
+    -1
+  } else if value > 0 {
+    1
+  } else {
+    0
   }
 }
