@@ -1,0 +1,12 @@
+#!/bin/sh
+# Run the same checks CI runs, but only when the MoonBit toolchain is reachable.
+# CI is the authority; this hook is a fast local guard.
+if command -v moon >/dev/null 2>&1; then
+  MOON=moon
+elif [ -x "$HOME/.moon/bin/moon" ]; then
+  MOON="$HOME/.moon/bin/moon"
+else
+  echo "pre-commit: MoonBit toolchain not found - skipping local checks (CI still enforces them)."
+  exit 0
+fi
+"$MOON" check

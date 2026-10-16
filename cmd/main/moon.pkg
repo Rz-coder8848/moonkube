@@ -1,0 +1,5 @@
+// import {
+//   "Rz-coder8848/moonkube" @lib,
+// }
+
+pkgtype(kind: "executable")
