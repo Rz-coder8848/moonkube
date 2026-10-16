@@ -8,6 +8,13 @@ on:
 permissions:
   contents: read
 
+env:
+  # Pinned on purpose. `moon fmt` output depends on the toolchain version: newer
+  # releases spell the default `Int` as its concrete width for the wasm-gc
+  # target, so an unpinned CI disagrees with a local checkout using an older
+  # toolchain and `moon fmt --check` fails without any code being wrong.
+  MOONBIT_INSTALL_VERSION: 0.1.20260915
+
 jobs:
   check:
     runs-on: ubuntu-latest
