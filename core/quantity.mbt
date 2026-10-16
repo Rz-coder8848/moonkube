@@ -457,3 +457,23 @@ fn sign_of(value : Int) -> Int {
     0
   }
 }
+
+///|
+/// Explicit method-promotion declarations for the derived and hand-written
+/// trait implementations on this module's types. Newer toolchains warn when a
+/// trait implementation is implicitly promoted to a regular method of the type;
+/// naming the promoted methods here keeps the build warning-free on both the
+/// old and new compilers.
+pub extend QuantityFormat with Eq::{equal, not_equal}
+
+///|
+pub extend QuantityFormat with @debug.Debug::{to_repr}
+
+///|
+pub extend Quantity with @debug.Debug::{to_repr}
+
+///|
+pub extend Quantity with ToJson::{to_json}
+
+///|
+pub extend Quantity with FromJson::{from_json}
