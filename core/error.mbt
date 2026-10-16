@@ -1,0 +1,79 @@
+///|
+/// The error taxonomy shared by every moonkube layer.
+///
+/// Every failure a caller can act on maps to exactly one variant, and each
+/// variant carries a message that is safe to print in logs.
+
+///|
+pub(all) suberror KubeError {
+  // A quantity, selector, patch document or HTTP response could not be parsed.
+  Parse(String)
+  // A response had a shape this library does not understand.
+  Decode(String)
+  // kubeconfig was missing, malformed, or pointed at an absent context.
+  Config(String)
+  // The transport failed before any response was produced.
+  Transport(String)
+  // The API server answered with a non-2xx status.
+  Status(KubeStatusError)
+}
+
+///|
+/// The `Status` object a Kubernetes API server returns for a failed request.
+pub(all) struct KubeStatusError {
+  code : Int
+  reason : String
+  message : String
+} derive(Eq, @debug.Debug)
+
+///|
+pub fn KubeStatusError::new(
+  code : Int,
+  reason : String,
+  message : String,
+) -> KubeStatusError {
+  { code, reason, message, }
+}
+
+///|
+/// True when the server reported that the object does not exist.
+pub fn KubeStatusError::is_not_found(self : KubeStatusError) -> Bool {
+  self.code == 404 || self.reason == "NotFound"
+}
+
+///|
+/// True when the request raced another writer.
+pub fn KubeStatusError::is_conflict(self : KubeStatusError) -> Bool {
+  self.code == 409 || self.reason == "Conflict"
+}
+
+///|
+/// True for 401 responses.
+pub fn KubeStatusError::is_unauthorized(self : KubeStatusError) -> Bool {
+  self.code == 401
+}
+
+///|
+/// True for 403 responses.
+pub fn KubeStatusError::is_forbidden(self : KubeStatusError) -> Bool {
+  self.code == 403
+}
+
+///|
+/// True for the statuses a controller should retry with backoff: 429 and 5xx.
+pub fn KubeStatusError::is_retryable(self : KubeStatusError) -> Bool {
+  self.code == 429 || (self.code >= 500 && self.code <= 599)
+}
+
+///|
+/// A one-line rendering that is safe to print in logs.
+pub fn KubeError::message(self : KubeError) -> String {
+  match self {
+    Parse(m) => "kube parse error: " + m
+    Decode(m) => "kube decode error: " + m
+    Config(m) => "kube config error: " + m
+    Transport(m) => "kube transport error: " + m
+    Status(s) =>
+      "kube api error " + s.code.to_string() + " " + s.reason + ": " + s.message
+  }
+}
