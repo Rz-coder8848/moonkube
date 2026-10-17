@@ -96,3 +96,20 @@ moon fmt --check
 Apache-2.0. The Kubernetes API conventions this library implements are
 documented by the Kubernetes project (Apache-2.0); no Kubernetes source code is
 copied. See `LICENSE`.
+## References
+
+moonkube is an original implementation, not a port, and contains no third-party
+code, FFI bindings or vendored sources. Its behaviour is aligned with these
+public specifications and reference clients — none of their source is copied or
+translated:
+
+| Reference | Used for | License |
+| --- | --- | --- |
+| [Kubernetes API reference](https://kubernetes.io/docs/reference/kubernetes-api/) and [API conventions](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md) | resource fields, selector grammar, patch semantics | Apache-2.0 |
+| `apimachinery` quantity rules | quantity parsing, canonical form, comparison | Apache-2.0 |
+| [client-go](https://github.com/kubernetes/client-go) (documented behaviour) | list-watch, `resourceVersion` resumption, 410 re-list, backoff | Apache-2.0 |
+| [kube-rs](https://github.com/kube-rs/kube) (documented behaviour) | shape of the transport abstraction | Apache-2.0 |
+| RFC 6902 / RFC 7386 / RFC 9112 | JSON Patch, JSON Merge Patch, HTTP/1.1 messages | IETF |
+
+The goal of the comparison is behavioural fidelity: `1000m` and `1` must compare
+equal, and `key!=value` must match objects that do not carry the label at all.
